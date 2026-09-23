@@ -417,5 +417,13 @@ el.archivoImportar.addEventListener('change', async () => {
   }
 });
 
+// Descarga del proyecto completo desde su repositorio público (rama main)
+if (URL_REPOSITORIO) {
+  const repositorio = URL_REPOSITORIO.replace(/\/+$/, '');
+  document.getElementById('enlace-descargar').href = `${repositorio}/archive/refs/heads/main.zip`;
+  document.getElementById('enlace-repositorio').href = repositorio;
+  document.querySelectorAll('[data-repositorio]').forEach(opcion => { opcion.hidden = false; });
+}
+
 renderizarSelectorMapeos();
 cargarReporte();

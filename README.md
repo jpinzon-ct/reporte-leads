@@ -5,6 +5,16 @@ empareja sus claves con los campos del reporte y muestra solo los campos que coi
 
 No necesita instalación ni servidor: basta con abrir `index.html` en el navegador.
 
+## Usarlo en otros dispositivos
+
+- **Versión publicada**: el sitio se puede publicar en Vercel (u otro hosting estático) sin configuración ni
+  paso de compilación; basta con abrir su URL en cualquier dispositivo.
+- **Descargar el proyecto completo**: desde el sitio, *Configuración → Descargar proyecto (.zip)*, o en GitHub
+  *Code → Download ZIP*. Se descomprime y se abre `index.html`.
+
+Las fuentes, mapeos y filtros de cada navegador no viajan con el proyecto: para llevarlos a otro dispositivo,
+usa *Configuración → Exportar configuración* y luego *Importar configuración* en el otro dispositivo.
+
 ## Funcionalidades
 
 - **Fuentes de datos**: consumos API REST (URL, método, encabezados, cuerpo) o respuestas JSON pegadas.

@@ -8,6 +8,10 @@
  * - MAPEO_PREDETERMINADO: mapeo por defecto; se calcula con EQUIVALENCIAS sobre su fuente principal.
  */
 
+// Repositorio público del proyecto, p. ej. 'https://github.com/usuario/reporte-leads'.
+// Si se indica, el menú Configuración ofrece descargar el proyecto completo (.zip) y ver el código.
+const URL_REPOSITORIO = '';
+
 const FUENTES_PROYECTO = [
   {
     id: 'leads',

@@ -1,0 +1,206 @@
+body {
+  background-color: #f4f6f9;
+}
+
+.marca {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: .5rem;
+  background-color: var(--bs-primary-bg-subtle);
+  color: var(--bs-primary);
+  font-size: 1.1rem;
+}
+
+.buscador {
+  width: 16rem;
+}
+
+.selector-mapeo {
+  width: 15rem;
+}
+
+@media (max-width: 575.98px) {
+  .buscador,
+  .selector-mapeo {
+    width: 100%;
+    order: 5;
+  }
+}
+
+/* ---------- Tabla ---------- */
+
+.card {
+  overflow: hidden;
+}
+
+.tabla-contenedor {
+  max-height: calc(100vh - 10.5rem);
+  overflow: auto;
+}
+
+.tabla-reporte {
+  font-size: .8125rem;
+  /* "separate" conserva los bordes de las celdas fijas (sticky) al desplazarse */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.tabla-reporte > :not(caption) > * > * {
+  padding: .5rem .75rem;
+}
+
+.tabla-reporte thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  min-width: 7rem;
+  max-width: 12rem;
+  background-color: var(--bs-tertiary-bg);
+  color: var(--bs-emphasis-color);
+  font-weight: 600;
+  line-height: 1.25;
+  vertical-align: bottom;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.tabla-reporte td {
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Primera columna visible fija al desplazarse en horizontal */
+.tabla-reporte th:first-child,
+.tabla-reporte td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  border-right-width: var(--bs-border-width);
+}
+
+.tabla-reporte thead th:first-child {
+  z-index: 3;
+}
+
+.vacio {
+  color: var(--bs-tertiary-color);
+}
+
+/* Vista Detalle: separa los registros de cada Id */
+.tabla-reporte tr.inicio-grupo > td {
+  border-top: 2px solid var(--bs-secondary-border-subtle);
+}
+
+/* ---------- Filtros ---------- */
+
+.chip-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  max-width: 100%;
+  padding: .35em .5em .35em .75em;
+  background-color: var(--bs-primary-bg-subtle);
+  color: var(--bs-primary-text-emphasis);
+  border-color: var(--bs-primary-border-subtle) !important;
+  font-size: .8rem;
+}
+
+.chip-filtro.inactivo {
+  background-color: var(--bs-tertiary-bg);
+  color: var(--bs-secondary-color);
+  text-decoration: line-through;
+}
+
+.chip-filtro .btn-close {
+  font-size: .55rem;
+}
+
+.filtro-inactivo {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.opciones-filtro {
+  max-height: 12rem;
+  overflow: auto;
+}
+
+.mensaje-tabla {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--bs-secondary-color);
+}
+
+.mensaje-tabla .bi {
+  display: block;
+  margin-bottom: .5rem;
+  font-size: 2rem;
+}
+
+/* ---------- Panel de campos ---------- */
+
+#lista-campos .list-group-item {
+  padding: .5rem .25rem;
+}
+
+#lista-campos .form-check-label {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.campo-clave {
+  display: block;
+  font-size: .75rem;
+  color: var(--bs-secondary-color);
+}
+
+.sin-coincidencia summary {
+  cursor: pointer;
+}
+
+/* ---------- Ventanas de fuentes y mapeos ---------- */
+
+.claves-prueba {
+  max-height: 12rem;
+  overflow: auto;
+  line-height: 1.9;
+}
+
+.filtro-mapeo {
+  flex: 1 1 12rem;
+  width: auto;
+}
+
+.tabla-mapeo-contenedor {
+  max-height: 55vh;
+  overflow: auto;
+}
+
+.tabla-mapeo thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--bs-tertiary-bg);
+  font-size: .8125rem;
+}
+
+.tabla-mapeo th:first-child {
+  width: 26%;
+}
+
+.tabla-mapeo th:nth-child(4) {
+  width: 20%;
+}
+
+.tabla-mapeo th:last-child {
+  width: 2.5rem;
+}
+
+.campo-mapeo {
+  font-size: .8125rem;
+  overflow-wrap: anywhere;
+}

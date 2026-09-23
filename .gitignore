@@ -1,0 +1,11 @@
+# Configuración local de herramientas
+.claude/
+.vscode/
+
+# Configuraciones exportadas desde el reporte (pueden incluir tokens)
+configuracion-reporte*.json
+
+# Sistema operativo
+Thumbs.db
+Desktop.ini
+.DS_Store

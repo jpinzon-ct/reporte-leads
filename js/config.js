@@ -10,7 +10,7 @@
 
 // Repositorio público del proyecto, p. ej. 'https://github.com/usuario/reporte-leads'.
 // Si se indica, el menú Configuración ofrece descargar el proyecto completo (.zip) y ver el código.
-const URL_REPOSITORIO = '';
+const URL_REPOSITORIO = 'https://github.com/jpinzon-ct/reporte-leads';
 
 const FUENTES_PROYECTO = [
   {

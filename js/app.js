@@ -1,7 +1,7 @@
 /**
  * Reporte de Leads: carga las fuentes del mapeo en uso, las une por Id y muestra en la tabla solo los
  * campos del reporte que coinciden con alguna clave de las respuestas.
- * Vista Resumen: una fila por Id. Vista Detalle: una fila por registro de la fuente elegida.
+ * Vista Resumen: una fila por Id. Vista Detalle: una fila por registro de la fuente con varios registros por Id.
  */
 
 const estado = {
@@ -9,7 +9,7 @@ const estado = {
   columnas: [],         // campos con coincidencia: { campo, fuente, clave, metrica }
   sinCoincidencia: [],  // campos sin clave en las respuestas
   filas: [],            // [{ grupo: Id, valores: { [campo]: valor } }]
-  fuenteDetalle: null,  // fuente cuyas filas muestra la vista Detalle (la define el mapeo)
+  fuenteDetalle: null,  // fuente cuyas filas muestra la vista Detalle (se elige sola, ver fuenteDeDetalle)
   // Preferencias del mapeo en uso (se guardan en configuracion.preferencias)
   vista: 'resumen',
   ocultos: new Set(),

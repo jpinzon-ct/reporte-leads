@@ -8,7 +8,6 @@ const uiMapeos = {
   lista: document.getElementById('lista-mapeos'),
   nombre: document.getElementById('mapeo-nombre'),
   principal: document.getElementById('mapeo-principal'),
-  detalle: document.getElementById('mapeo-detalle'),
   aviso: document.getElementById('mapeo-aviso'),
   filtro: document.getElementById('mapeo-filtro'),
   contador: document.getElementById('mapeo-contador'),
@@ -192,7 +191,7 @@ function renderizarAvisoMapeo() {
   const conRepetidos = ids.filter(id => resultadosFuentes.get(id)?.repetidos);
   if (conRepetidos.length) {
     const nombres = conRepetidos.map(id => `«${escaparHtml(nombreFuente(id))}»`).join(', ');
-    partes.push(`<div class="alert alert-light border small py-2 mb-2"><i class="bi bi-info-circle me-1"></i>${nombres} ${conRepetidos.length === 1 ? 'tiene' : 'tienen'} varios registros para un mismo Id. En la columna <strong>Si hay varios registros</strong> elige cómo combinarlos en la vista Resumen; en <strong>Filas de la vista Detalle</strong>, de qué fuente sale una fila por registro.</div>`);
+    partes.push(`<div class="alert alert-light border small py-2 mb-2"><i class="bi bi-info-circle me-1"></i>${nombres} ${conRepetidos.length === 1 ? 'tiene' : 'tienen'} varios registros para un mismo Id. En la columna <strong>Si hay varios registros</strong> elige cómo combinarlos en la vista Resumen (en la vista Detalle se ve un registro por fila).</div>`);
   }
   uiMapeos.aviso.innerHTML = partes.join('');
 }
@@ -202,17 +201,6 @@ function actualizarContadorMapeo() {
   const disponibles = pares.filter(par => resultadosFuentes.get(par.fuente)?.cabeceras?.has(par.clave));
   const conDatos = disponibles.filter(par => resultadosFuentes.get(par.fuente).conDatos?.has(par.clave) !== false);
   uiMapeos.contador.textContent = `${pares.length} de ${CAMPOS_REPORTE.length} mapeados · ${disponibles.length} con la clave en la respuesta · ${conDatos.length} con datos`;
-}
-
-function renderizarOpcionesDetalle() {
-  const ids = fuentesDelMapeo(borrador).filter(Boolean);
-  let opciones = '<option value="">Automática (la que tenga varios registros por Id)</option>';
-  if (borrador.fuenteDetalle && !ids.includes(borrador.fuenteDetalle)) ids.push(borrador.fuenteDetalle);
-  opciones += ids
-    .map(id => `<option value="${escaparHtml(id)}"${id === borrador.fuenteDetalle ? ' selected' : ''}>${escaparHtml(nombreFuente(id))}</option>`)
-    .join('');
-  uiMapeos.detalle.innerHTML = opciones;
-  uiMapeos.detalle.value = borrador.fuenteDetalle ?? '';
 }
 
 function aplicarFiltroMapeo() {
@@ -231,8 +219,6 @@ function renderizarEditor() {
   uiMapeos.principal.innerHTML = opcionesFuentes(borrador.fuentePrincipal, false);
   uiMapeos.principal.value = borrador.fuentePrincipal;
   uiMapeos.principal.disabled = soloLectura;
-  renderizarOpcionesDetalle();
-  uiMapeos.detalle.disabled = soloLectura;
   uiMapeos.btnAutoemparejar.disabled = soloLectura;
   uiMapeos.btnLimpiar.disabled = soloLectura;
   uiMapeos.btnEliminar.disabled = soloLectura;
@@ -259,7 +245,7 @@ function editarMapeo(id) {
 
 function nuevoMapeo() {
   if (!confirmarDescarte()) return;
-  borrador = { id: null, nombre: 'Nuevo mapeo', fuentePrincipal: configuracion.fuentes[0]?.id ?? '', fuenteDetalle: '', campos: {} };
+  borrador = { id: null, nombre: 'Nuevo mapeo', fuentePrincipal: configuracion.fuentes[0]?.id ?? '', campos: {} };
   mapeoSucio = true;
   renderizarEditor();
   mensajeMapeo('Elige la fuente principal y usa «Autoemparejar» o asigna los campos a mano.', 'body-secondary');
@@ -276,7 +262,6 @@ async function duplicarMapeo() {
     id: null,
     nombre: `${uiMapeos.nombre.value.trim() || borrador.nombre} (copia)`,
     fuentePrincipal: borrador.fuentePrincipal,
-    fuenteDetalle: borrador.fuenteDetalle ?? '',
     campos: structuredClone(borrador.campos),
   };
   mapeoSucio = true;
@@ -306,7 +291,6 @@ function guardarMapeo() {
     if (par.metrica && par.metrica !== 'primero') campos[campo].metrica = par.metrica;
   }
   const mapeo = { id: borrador.id, nombre, fuentePrincipal: borrador.fuentePrincipal, campos };
-  if (borrador.fuenteDetalle) mapeo.fuenteDetalle = borrador.fuenteDetalle;
   if (mapeo.id) {
     configuracion.mapeos[configuracion.mapeos.findIndex(m => m.id === mapeo.id)] = mapeo;
   } else {
@@ -377,7 +361,6 @@ async function autoemparejarBorrador() {
     }
   }
   if (emparejados || reasignados) marcarSucio();
-  renderizarOpcionesDetalle();
   renderizarFilas();
   renderizarAvisoMapeo();
   actualizarContadorMapeo();
@@ -427,13 +410,7 @@ uiMapeos.nombre.addEventListener('input', () => {
 uiMapeos.principal.addEventListener('change', () => {
   borrador.fuentePrincipal = uiMapeos.principal.value;
   marcarSucio();
-  renderizarOpcionesDetalle();
   renderizarAvisoMapeo();
-});
-
-uiMapeos.detalle.addEventListener('change', () => {
-  borrador.fuenteDetalle = uiMapeos.detalle.value;
-  marcarSucio();
 });
 
 uiMapeos.filas.addEventListener('change', evento => {
@@ -460,7 +437,6 @@ uiMapeos.filas.addEventListener('change', evento => {
     }
     borrador.campos[campo] = { ...borrador.campos[campo], fuente, clave };
   }
-  renderizarOpcionesDetalle();
   marcarSucio();
   actualizarFila(fila);
   actualizarContadorMapeo();

@@ -24,7 +24,7 @@ usa *Configuración → Exportar configuración* y luego *Importar configuració
 - **Varios registros por Id**:
   - *Resumen*: una fila por Id; cada campo se calcula con su métrica (primer/último registro, conteo,
     valores distintos, suma, promedio, mínimo, máximo o lista de valores).
-  - *Detalle*: una fila por cada registro de la fuente elegida.
+  - *Detalle*: una fila por cada registro de la fuente que tiene varios registros por Id (se elige sola).
 - **Campos y filtros**: mostrar u ocultar campos y filtrar por cualquier campo visible; las condiciones se
   adaptan al tipo de dato (texto, número o fecha).
 - **Exportar / importar** la configuración (fuentes, mapeos y preferencias) como JSON.

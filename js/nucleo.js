@@ -338,12 +338,11 @@ function coincidenciasPorId(idPrincipal, idFuente) {
 }
 
 /**
- * Fuente cuyas filas muestra la vista Detalle: la definida en el mapeo o, si no hay, la primera con
- * varios registros por Id (si ninguna tiene, la primera secundaria; si no hay secundarias, la principal).
+ * Fuente cuyas filas muestra la vista Detalle: la primera del mapeo con varios registros por Id
+ * (si ninguna tiene, la primera secundaria; si no hay secundarias, la principal).
  */
 function fuenteDeDetalle(mapeo, columnas) {
   const opciones = [...new Set([mapeo.fuentePrincipal, ...columnas.map(c => c.fuente)])];
-  if (mapeo.fuenteDetalle && opciones.includes(mapeo.fuenteDetalle)) return mapeo.fuenteDetalle;
   return opciones.find(id => resultadosFuentes.get(id)?.repetidos) ?? opciones[1] ?? opciones[0];
 }
 

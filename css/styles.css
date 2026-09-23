@@ -91,6 +91,28 @@ body {
   color: var(--bs-tertiary-color);
 }
 
+/* Fuentes del mapeo en uso (informativo) */
+.fuente-mapeo {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .35rem;
+  padding: .3rem .65rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  background-color: var(--bs-body-bg);
+  font-size: .8rem;
+}
+
+.fuente-mapeo.con-problema {
+  border-color: var(--bs-warning-border-subtle);
+  background-color: var(--bs-warning-bg-subtle);
+}
+
+.fuente-mapeo code {
+  font-size: .75rem;
+}
+
 /* Vista Detalle: separa los registros de cada Id */
 .tabla-reporte tr.inicio-grupo > td {
   border-top: 2px solid var(--bs-secondary-border-subtle);

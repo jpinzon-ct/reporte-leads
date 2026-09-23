@@ -220,16 +220,27 @@ async function leerFuente(fuente) {
   const registros = lista.filter(r => r && typeof r === 'object' && !Array.isArray(r));
   // Cabeceras = todas las claves presentes en la respuesta (unión de todos los registros)
   const cabeceras = new Set(registros.flatMap(r => Object.keys(r)));
+  // Claves con valor en al menos un registro (una clave puede venir siempre vacía)
+  const conDatos = new Set();
+  for (const registro of registros) {
+    for (const [clave, valor] of Object.entries(registro)) {
+      if (valorComoTexto(valor) !== '') conDatos.add(clave);
+    }
+  }
 
   const registrosPorId = new Map();
   for (const registro of registros) {
-    const id = valorComoTexto(registro[fuente.campoId || 'id']);
+    const id = idDeRegistro(registro, fuente.campoId);
     if (id !== '') registrosPorId.set(id, (registrosPorId.get(id) ?? 0) + 1);
   }
   // Cantidad de Ids que tienen más de un registro
   const repetidos = [...registrosPorId.values()].filter(n => n > 1).length;
 
-  return { registros, cabeceras, repetidos };
+  return { registros, cabeceras, conDatos, repetidos };
+}
+
+function idDeRegistro(registro, campoId) {
+  return valorComoTexto(registro[campoId || 'id']).trim();
 }
 
 function leerJsonOpcional(valor, descripcion) {
@@ -275,16 +286,17 @@ async function consultarApi(fuente) {
 // ---------- Emparejamiento campos del reporte <-> claves de las fuentes ----------
 
 /**
- * Empareja automáticamente campos del reporte con claves de las fuentes: primero por EQUIVALENCIAS y
- * luego por nombre. Las fuentes se revisan en el orden recibido; gana la primera que tenga la clave.
- * @param {{ id: string, cabeceras: Set<string> }[]} fuentes
+ * Empareja automáticamente campos del reporte con claves de las fuentes, por EQUIVALENCIAS o por nombre.
+ * Si varias fuentes tienen la clave, gana la primera (en el orden recibido) donde la clave tiene datos;
+ * así una clave que existe pero viene vacía en la principal no tapa a la que sí trae datos en otra fuente.
+ * @param {{ id: string, cabeceras: Set<string>, conDatos?: Set<string> }[]} fuentes
  * @returns {Object<string, { fuente: string, clave: string }>}
  */
 function autoemparejar(fuentes, campos = CAMPOS_REPORTE) {
   const equivalencias = new Map(
     Object.entries(EQUIVALENCIAS).map(([campo, clave]) => [normalizarNombre(campo), clave])
   );
-  const buscadores = fuentes.map(({ id, cabeceras }) => {
+  const buscadores = fuentes.map(({ id, cabeceras, conDatos }) => {
     const cabeceraPorNombre = new Map();
     for (const cabecera of cabeceras) {
       const nombre = normalizarNombre(cabecera);
@@ -292,22 +304,17 @@ function autoemparejar(fuentes, campos = CAMPOS_REPORTE) {
     }
     return nombre => {
       const clave = cabeceras.has(nombre) ? nombre : cabeceraPorNombre.get(normalizarNombre(nombre));
-      return clave ? { fuente: id, clave } : null;
+      return clave ? { fuente: id, clave, conDatos: conDatos?.has(clave) ?? true } : null;
     };
   });
-  const buscar = nombre => {
-    for (const buscador of buscadores) {
-      const par = buscador(nombre);
-      if (par) return par;
-    }
-    return null;
-  };
+  const buscarEnTodas = nombre => buscadores.map(buscador => buscador(nombre)).filter(Boolean);
 
   const pares = {};
   for (const campo of campos) {
     const equivalente = equivalencias.get(normalizarNombre(campo));
-    const par = (equivalente && buscar(equivalente)) || buscar(campo);
-    if (par) pares[campo] = par;
+    const candidatos = [...(equivalente ? buscarEnTodas(equivalente) : []), ...buscarEnTodas(campo)];
+    const elegido = candidatos.find(c => c.conDatos) ?? candidatos[0];
+    if (elegido) pares[campo] = { fuente: elegido.fuente, clave: elegido.clave };
   }
   return pares;
 }
@@ -316,9 +323,28 @@ function autoemparejar(fuentes, campos = CAMPOS_REPORTE) {
 function paresDelMapeo(mapeo) {
   if (!mapeo.automatico) return mapeo.campos ?? {};
   const principal = resultadosFuentes.get(mapeo.fuentePrincipal);
-  return principal?.cabeceras
-    ? autoemparejar([{ id: mapeo.fuentePrincipal, cabeceras: principal.cabeceras }])
-    : {};
+  return principal?.cabeceras ? autoemparejar([{ id: mapeo.fuentePrincipal, ...principal }]) : {};
+}
+
+/** Cuántos Ids de la fuente principal tienen al menos un registro en otra fuente (ambas ya cargadas). */
+function coincidenciasPorId(idPrincipal, idFuente) {
+  const principal = agruparPorId(idPrincipal);
+  const otra = agruparPorId(idFuente);
+  let coinciden = 0;
+  for (const id of principal.keys()) {
+    if (otra.has(id)) coinciden++;
+  }
+  return { coinciden, total: principal.size };
+}
+
+/**
+ * Fuente cuyas filas muestra la vista Detalle: la definida en el mapeo o, si no hay, la primera con
+ * varios registros por Id (si ninguna tiene, la primera secundaria; si no hay secundarias, la principal).
+ */
+function fuenteDeDetalle(mapeo, columnas) {
+  const opciones = [...new Set([mapeo.fuentePrincipal, ...columnas.map(c => c.fuente)])];
+  if (mapeo.fuenteDetalle && opciones.includes(mapeo.fuenteDetalle)) return mapeo.fuenteDetalle;
+  return opciones.find(id => resultadosFuentes.get(id)?.repetidos) ?? opciones[1] ?? opciones[0];
 }
 
 /** Columnas del reporte: solo los campos cuya clave viene en la respuesta de su fuente. */
@@ -401,7 +427,7 @@ function agruparPorId(idFuente, conservarSinId = false) {
   const campoId = fuente?.campoId || 'id';
   const grupos = new Map();
   resultadosFuentes.get(idFuente).registros.forEach((registro, indice) => {
-    let id = valorComoTexto(registro[campoId]);
+    let id = idDeRegistro(registro, campoId);
     if (id === '') {
       if (!conservarSinId) return;
       id = `\u0000sin-id-${indice}`;

@@ -66,18 +66,17 @@
     <div id="notificaciones"></div>
     <div id="avisos"></div>
 
+    <!-- Fuentes que usa el mapeo en uso (informativo: se configuran en Configuración → Mapeos) -->
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2" id="fuentes-mapeo"></div>
+
     <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
       <div class="btn-group btn-group-sm" role="group" aria-label="Vista del reporte">
         <input type="radio" class="btn-check" name="vista" id="vista-resumen" value="resumen" autocomplete="off" checked>
-        <label class="btn btn-outline-secondary" for="vista-resumen" title="Una fila por Id. Si una fuente tiene varios registros con el mismo Id, cada campo se calcula con su métrica (Configuración → Mapeos)."><i class="bi bi-list-ul"></i> Resumen</label>
+        <label class="btn btn-outline-secondary" for="vista-resumen"><i class="bi bi-list-ul"></i> Resumen</label>
         <input type="radio" class="btn-check" name="vista" id="vista-detalle" value="detalle" autocomplete="off">
-        <label class="btn btn-outline-secondary" for="vista-detalle" title="Una fila por cada registro de la fuente elegida."><i class="bi bi-list-nested"></i> Detalle</label>
+        <label class="btn btn-outline-secondary" for="vista-detalle"><i class="bi bi-list-nested"></i> Detalle</label>
       </div>
-      <div class="input-group input-group-sm w-auto" id="grupo-fuente-detalle" hidden>
-        <label class="input-group-text" for="fuente-detalle">Registros de</label>
-        <select class="form-select" id="fuente-detalle"></select>
-      </div>
-      <small class="text-body-secondary" id="info-repetidos"></small>
+      <small class="text-body-secondary" id="descripcion-vista"></small>
       <small class="text-body-secondary ms-auto text-end">
         <span id="resumen-registros"></span>
         <span class="d-none d-md-inline" id="resumen-coincidencias"></span>
@@ -255,16 +254,20 @@
 
             <div class="col-lg-9">
               <div class="row g-2 align-items-end">
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <label class="form-label small mb-1" for="mapeo-nombre">Nombre</label>
                   <input class="form-control form-control-sm" id="mapeo-nombre">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <label class="form-label small mb-1" for="mapeo-principal">Fuente principal</label>
                   <select class="form-select form-select-sm" id="mapeo-principal"></select>
                 </div>
+                <div class="col-md-4">
+                  <label class="form-label small mb-1" for="mapeo-detalle">Filas de la vista Detalle</label>
+                  <select class="form-select form-select-sm" id="mapeo-detalle"></select>
+                </div>
               </div>
-              <div class="form-text">Las filas del reporte salen de la fuente principal; las demás fuentes se unen a ella por su campo Id.</div>
+              <div class="form-text">La vista Resumen tiene una fila por Id de la fuente principal; las demás fuentes se unen a ella por su campo Id. La vista Detalle tiene una fila por cada registro de la fuente elegida.</div>
 
               <div class="mt-2" id="mapeo-aviso"></div>
 

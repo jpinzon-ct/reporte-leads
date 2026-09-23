@@ -9,9 +9,9 @@ const estado = {
   columnas: [],         // campos con coincidencia: { campo, fuente, clave, metrica }
   sinCoincidencia: [],  // campos sin clave en las respuestas
   filas: [],            // [{ grupo: Id, valores: { [campo]: valor } }]
+  fuenteDetalle: null,  // fuente cuyas filas muestra la vista Detalle (la define el mapeo)
   // Preferencias del mapeo en uso (se guardan en configuracion.preferencias)
   vista: 'resumen',
-  fuenteDetalle: null,
   ocultos: new Set(),
   filtros: [],
   busqueda: '',
@@ -35,11 +35,10 @@ const el = {
   archivoImportar: document.getElementById('archivo-importar'),
   notificaciones: document.getElementById('notificaciones'),
   avisos: document.getElementById('avisos'),
+  fuentesMapeo: document.getElementById('fuentes-mapeo'),
   vistaResumen: document.getElementById('vista-resumen'),
   vistaDetalle: document.getElementById('vista-detalle'),
-  grupoFuenteDetalle: document.getElementById('grupo-fuente-detalle'),
-  fuenteDetalle: document.getElementById('fuente-detalle'),
-  infoRepetidos: document.getElementById('info-repetidos'),
+  descripcionVista: document.getElementById('descripcion-vista'),
   resumenRegistros: document.getElementById('resumen-registros'),
   resumenCoincidencias: document.getElementById('resumen-coincidencias'),
   tabla: document.getElementById('tabla-contenedor'),
@@ -66,7 +65,6 @@ function leerPreferencias(idMapeo) {
   const guardadas = configuracion.preferencias[idMapeo] ?? {};
   return {
     vista: guardadas.vista === 'detalle' ? 'detalle' : 'resumen',
-    fuenteDetalle: guardadas.fuenteDetalle ?? null,
     ocultos: new Set(Array.isArray(guardadas.ocultos) ? guardadas.ocultos : []),
     filtros: Array.isArray(guardadas.filtros) ? structuredClone(guardadas.filtros) : [],
   };
@@ -76,7 +74,6 @@ function guardarPreferencias() {
   if (!estado.mapeo) return;
   configuracion.preferencias[estado.mapeo.id] = {
     vista: estado.vista,
-    fuenteDetalle: estado.fuenteDetalle,
     ocultos: [...estado.ocultos],
     filtros: estado.filtros,
   };
@@ -100,17 +97,8 @@ function cambiarVisibilidad(columnas, visible) {
   renderizarTabla();
 }
 
-/** Fuentes que pueden dar las filas de la vista Detalle: la principal y las que aportan columnas. */
-function fuentesDeDetalle() {
-  return [...new Set([estado.mapeo.fuentePrincipal, ...estado.columnas.map(c => c.fuente)])];
-}
-
 function recalcularFilas() {
-  const opciones = fuentesDeDetalle();
-  if (!opciones.includes(estado.fuenteDetalle)) {
-    // Por defecto, la primera fuente con varios registros por Id; si no hay, la primera secundaria.
-    estado.fuenteDetalle = opciones.find(id => resultadosFuentes.get(id)?.repetidos) ?? opciones[1] ?? opciones[0];
-  }
+  estado.fuenteDetalle = fuenteDeDetalle(estado.mapeo, estado.columnas);
   estado.filas = construirFilas(estado.mapeo, estado.columnas, estado.vista, estado.fuenteDetalle);
   reiniciarTiposCampos();
 }
@@ -194,33 +182,84 @@ function renderizarTabla() {
 
 // ---------- Barra de vista ----------
 
+function plural(n, singular, varios) {
+  return `${n} ${n === 1 ? singular : varios}`;
+}
+
+/** Una etiqueta por fuente del mapeo: su papel, cuántos registros trae y si la unión por Id funciona. */
+function etiquetaFuente(id) {
+  const fuente = buscarFuente(id);
+  const resultado = resultadosFuentes.get(id);
+  const principal = id === estado.mapeo.fuentePrincipal;
+  const campos = estado.columnas.filter(c => c.fuente === id).length;
+  const detalles = [];
+  const problemas = [];
+  const insignias = [];
+
+  if (principal) insignias.push('<span class="badge text-bg-primary">principal</span>');
+  if (estado.vista === 'detalle' && id === estado.fuenteDetalle) insignias.push('<span class="badge text-bg-secondary">filas del detalle</span>');
+
+  if (!fuente) {
+    problemas.push('ya no existe');
+  } else if (!resultado || resultado.error) {
+    problemas.push('no se pudo cargar');
+  } else {
+    if (!principal) detalles.push(`unida por <code>${escaparHtml(fuente.campoId || 'id')}</code>`);
+    detalles.push(plural(resultado.registros.length, 'registro', 'registros'));
+    detalles.push(plural(campos, 'campo', 'campos'));
+    if (resultado.repetidos) insignias.push('<span class="badge text-bg-light border">varios por Id</span>');
+    if (!campos) problemas.push('ninguna de sus claves mapeadas viene en la respuesta');
+
+    if (!principal && resultadosFuentes.get(estado.mapeo.fuentePrincipal)?.registros) {
+      const { coinciden, total } = coincidenciasPorId(estado.mapeo.fuentePrincipal, id);
+      detalles.push(`${coinciden} de ${plural(total, 'Id', 'Ids')} con datos`);
+      if (!coinciden) problemas.push(`ningún Id coincide con «${escaparHtml(nombreFuente(estado.mapeo.fuentePrincipal))}»`);
+    }
+  }
+
+  const titulo = principal
+    ? 'Fuente principal: da los Ids (filas) del reporte.'
+    : !problemas.length
+      ? 'Se une a la fuente principal por su campo Id.'
+      : 'Revisa el campo Id de la fuente (Configuración → Fuentes de datos) y que sus Ids sean los mismos que los de la fuente principal.';
+  return `
+    <span class="fuente-mapeo${problemas.length ? ' con-problema' : ''}" title="${escaparHtml(titulo)}">
+      <i class="bi ${problemas.length ? 'bi-exclamation-triangle-fill text-warning' : principal ? 'bi-database-fill text-primary' : 'bi-link-45deg'}"></i>
+      <strong>${escaparHtml(nombreFuente(id))}</strong>
+      ${insignias.join(' ')}
+      <span class="text-body-secondary">${detalles.join(' · ')}</span>
+      ${problemas.length ? `<span class="text-warning-emphasis">${problemas.join('; ')}</span>` : ''}
+    </span>`;
+}
+
 function renderizarBarraVista() {
   el.vistaResumen.checked = estado.vista === 'resumen';
   el.vistaDetalle.checked = estado.vista === 'detalle';
 
-  const opciones = estado.error || !estado.mapeo ? [] : fuentesDeDetalle();
-  el.grupoFuenteDetalle.hidden = estado.vista !== 'detalle' || !opciones.length;
-  el.fuenteDetalle.innerHTML = opciones.map(id => {
-    const repetidos = resultadosFuentes.get(id)?.repetidos ? ' (varios por Id)' : '';
-    return `<option value="${escaparHtml(id)}"${id === estado.fuenteDetalle ? ' selected' : ''}>${escaparHtml(nombreFuente(id))}${repetidos}</option>`;
-  }).join('');
+  if (estado.error || !estado.mapeo) {
+    el.fuentesMapeo.innerHTML = '';
+    el.descripcionVista.textContent = '';
+    return;
+  }
 
-  const conRepetidos = opciones.filter(id => resultadosFuentes.get(id)?.repetidos);
-  el.infoRepetidos.innerHTML = conRepetidos.length
-    ? `<i class="bi bi-info-circle me-1"></i>${conRepetidos.map(id => {
-        const n = resultadosFuentes.get(id).repetidos;
-        return `«${escaparHtml(nombreFuente(id))}»: ${n} ${n === 1 ? 'Id tiene' : 'Ids tienen'} varios registros`;
-      }).join('; ')}`
-    : '';
-  el.infoRepetidos.title = conRepetidos.length
-    ? 'En Resumen se combinan con la métrica de cada campo (Configuración → Mapeos); en Detalle se ve un registro por fila.'
-    : '';
+  el.fuentesMapeo.innerHTML = `
+    <small class="text-body-secondary">Fuentes de «${escaparHtml(estado.mapeo.nombre)}»:</small>
+    ${fuentesDelMapeo(estado.mapeo).map(etiquetaFuente).join('')}`;
+
+  const principal = `«${escaparHtml(nombreFuente(estado.mapeo.fuentePrincipal))}»`;
+  if (estado.vista === 'detalle') {
+    el.descripcionVista.innerHTML = `Una fila por cada registro de «${escaparHtml(nombreFuente(estado.fuenteDetalle))}».`;
+  } else {
+    const combinadas = [...new Set(estado.columnas.map(c => c.fuente))].filter(id => resultadosFuentes.get(id)?.repetidos);
+    el.descripcionVista.innerHTML = `Una fila por Id de ${principal}.${combinadas.length
+      ? ` Los registros con el mismo Id de ${combinadas.map(id => `«${escaparHtml(nombreFuente(id))}»`).join(', ')} se combinan con la métrica de cada campo.`
+      : ''}`;
+  }
 }
 
 function cambiarVista() {
   if (!estado.mapeo || estado.error) return;
   estado.vista = el.vistaDetalle.checked ? 'detalle' : 'resumen';
-  estado.fuenteDetalle = el.fuenteDetalle.value || estado.fuenteDetalle;
   guardarPreferencias();
   recalcularFilas();
   renderizarBarraVista();
@@ -379,7 +418,6 @@ el.selectorMapeo.addEventListener('change', () => {
 
 el.vistaResumen.addEventListener('change', cambiarVista);
 el.vistaDetalle.addEventListener('change', cambiarVista);
-el.fuenteDetalle.addEventListener('change', cambiarVista);
 
 el.btnCampos.addEventListener('click', () => alternarPanel('campos'));
 el.btnFiltros.addEventListener('click', () => alternarPanel('filtros'));

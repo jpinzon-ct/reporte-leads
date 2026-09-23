@@ -1,0 +1,5 @@
+# Archivos que no se publican en Vercel
+.env*
+.vercel
+.claude
+configuracion-reporte*.json

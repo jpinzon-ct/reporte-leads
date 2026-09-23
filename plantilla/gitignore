@@ -1,0 +1,6 @@
+# Credenciales de las fuentes: nunca se suben al repositorio
+.env
+
+# Archivos locales
+.vercel
+node_modules

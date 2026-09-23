@@ -28,6 +28,11 @@ usa *Configuración → Exportar configuración* y luego *Importar configuració
 - **Campos y filtros**: mostrar u ocultar campos y filtrar por cualquier campo visible; las condiciones se
   adaptan al tipo de dato (texto, número o fecha).
 - **Exportar / importar** la configuración (fuentes, mapeos y preferencias) como JSON.
+- **Exportar reporte** (*Configuración → Exportar reporte…*): descarga un .zip con un proyecto independiente
+  que muestra el reporte en uso sin opciones de configuración. Las URL y credenciales de las fuentes API van
+  en su archivo `.env` y las consulta su propio servidor (`npm start`, o Vercel con variables de entorno),
+  así nunca llegan al navegador. Las plantillas de ese proyecto están en `plantilla/`. Exportar requiere
+  abrir el configurador desde un servidor web (por ejemplo, Vercel), no como archivo local.
 
 ## Estructura
 
@@ -39,7 +44,10 @@ usa *Configuración → Exportar configuración* y luego *Importar configuració
 | `js/nucleo.js` | Configuración guardada, carga de fuentes, emparejamiento, métricas y unión por Id |
 | `js/fuentes.js` / `js/mapeos.js` | Ventanas de fuentes de datos y de mapeos |
 | `js/filtros.js` | Filtros dinámicos |
-| `js/app.js` | Tabla del reporte, vistas y panel de campos |
+| `js/app.js` | Tabla del reporte, vistas y panel de campos (también va en los reportes exportados) |
+| `js/editor.js` | Selector de mapeos e importar/exportar configuración (solo configurador) |
+| `js/exportar.js` | Exportar reporte independiente (.zip) |
+| `plantilla/` | Servidor, función de API, README y archivos ignorados del proyecto exportado |
 | `css/styles.css` | Estilos |
 
 ## Notas

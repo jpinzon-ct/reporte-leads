@@ -1,8 +1,15 @@
 /**
- * Reporte de Leads: carga las fuentes del mapeo en uso, las une por Id y muestra en la tabla solo los
+ * Reporte: carga las fuentes del mapeo en uso, las une por Id y muestra en la tabla solo los
  * campos del reporte que coinciden con alguna clave de las respuestas.
  * Vista Resumen: una fila por Id. Vista Detalle: una fila por registro de la fuente con varios registros por Id.
+ *
+ * Este archivo también forma parte de los reportes exportados (sin opciones de configuración);
+ * lo propio del configurador (selector de mapeos, importar/exportar) está en js/editor.js.
  */
+
+// Indicaciones que solo tienen sentido en el configurador
+const REVISAR_MAPEO = SOLO_REPORTE ? '' : ' Revisa el mapeo en Configuración → Mapeos.';
+const REVISAR_FUENTE = SOLO_REPORTE ? '' : ' (Configuración → Fuentes de datos)';
 
 const estado = {
   mapeo: null,
@@ -24,15 +31,11 @@ let cargaActual = 0;
 
 const el = {
   estadoFuente: document.getElementById('estado-fuente'),
-  selectorMapeo: document.getElementById('selector-mapeo'),
   buscar: document.getElementById('buscar'),
   btnActualizar: document.getElementById('btn-actualizar'),
   btnCampos: document.getElementById('btn-campos'),
   btnFiltros: document.getElementById('btn-filtros'),
   contadorCampos: document.getElementById('contador-campos'),
-  btnExportar: document.getElementById('btn-exportar'),
-  btnImportar: document.getElementById('btn-importar'),
-  archivoImportar: document.getElementById('archivo-importar'),
   notificaciones: document.getElementById('notificaciones'),
   avisos: document.getElementById('avisos'),
   fuentesMapeo: document.getElementById('fuentes-mapeo'),
@@ -143,7 +146,7 @@ function renderizarTabla() {
     : `${filas.length} de ${total} registros`;
 
   if (!estado.columnas.length) {
-    el.tabla.innerHTML = mensajeTabla('bi-diagram-3', 'Ningún campo del reporte coincide con las claves de las fuentes. Revisa el mapeo en Configuración → Mapeos.');
+    el.tabla.innerHTML = mensajeTabla('bi-diagram-3', `Ningún campo del reporte coincide con las claves de las fuentes.${REVISAR_MAPEO}`);
     return;
   }
   if (!columnas.length) {
@@ -221,7 +224,7 @@ function etiquetaFuente(id) {
     ? 'Fuente principal: da los Ids (filas) del reporte.'
     : !problemas.length
       ? 'Se une a la fuente principal por su campo Id.'
-      : 'Revisa el campo Id de la fuente (Configuración → Fuentes de datos) y que sus Ids sean los mismos que los de la fuente principal.';
+      : `Revisa el campo Id de la fuente${REVISAR_FUENTE} y que sus Ids sean los mismos que los de la fuente principal.`;
   return `
     <span class="fuente-mapeo${problemas.length ? ' con-problema' : ''}" title="${escaparHtml(titulo)}">
       <i class="bi ${problemas.length ? 'bi-exclamation-triangle-fill text-warning' : principal ? 'bi-database-fill text-primary' : 'bi-link-45deg'}"></i>
@@ -335,13 +338,6 @@ function actualizarResumenes() {
     .join('');
 }
 
-function renderizarSelectorMapeos() {
-  const activo = mapeoActivo().id;
-  el.selectorMapeo.innerHTML = todosLosMapeos()
-    .map(m => `<option value="${escaparHtml(m.id)}"${m.id === activo ? ' selected' : ''}>${escaparHtml(m.nombre)}</option>`)
-    .join('');
-}
-
 function renderizarTodo() {
   actualizarResumenes();
   actualizarContador();
@@ -392,7 +388,7 @@ async function cargarReporte(forzar = false) {
       avisos: [],
       error: buscarFuente(mapeo.fuentePrincipal)
         ? `No se pudo cargar la fuente principal «${nombreFuente(mapeo.fuentePrincipal)}»: ${principal?.error ?? ''}`
-        : `La fuente principal «${mapeo.fuentePrincipal}» no existe. Elige otra en Configuración → Mapeos.`,
+        : `La fuente principal «${mapeo.fuentePrincipal}» no existe.${REVISAR_MAPEO}`,
     });
     el.estadoFuente.textContent = 'Error al consultar';
   }
@@ -400,21 +396,9 @@ async function cargarReporte(forzar = false) {
   renderizarTodo();
 }
 
-/** Se llama cuando cambian las fuentes o los mapeos. */
-function alCambiarConfiguracion() {
-  renderizarSelectorMapeos();
-  cargarReporte();
-}
-
 // ---------- Eventos ----------
 
 el.btnActualizar.addEventListener('click', () => cargarReporte(true));
-
-el.selectorMapeo.addEventListener('change', () => {
-  configuracion.mapeoActivo = el.selectorMapeo.value;
-  guardarConfiguracion();
-  cargarReporte();
-});
 
 el.vistaResumen.addEventListener('change', cambiarVista);
 el.vistaDetalle.addEventListener('change', cambiarVista);
@@ -440,28 +424,4 @@ el.listaCampos.addEventListener('change', evento => {
 el.btnMostrarTodos.addEventListener('click', () => cambiarVisibilidadFiltrados(true));
 el.btnOcultarTodos.addEventListener('click', () => cambiarVisibilidadFiltrados(false));
 
-el.btnExportar.addEventListener('click', exportarConfiguracion);
-el.btnImportar.addEventListener('click', () => el.archivoImportar.click());
-el.archivoImportar.addEventListener('change', async () => {
-  const archivo = el.archivoImportar.files[0];
-  el.archivoImportar.value = '';
-  if (!archivo) return;
-  try {
-    const { fuentes, mapeos } = importarConfiguracion(await archivo.text());
-    notificar(`Configuración importada: ${fuentes} fuentes y ${mapeos} mapeos.`);
-    alCambiarConfiguracion();
-  } catch (error) {
-    notificar(error.message, 'danger');
-  }
-});
-
-// Descarga del proyecto completo desde su repositorio público (rama main)
-if (URL_REPOSITORIO) {
-  const repositorio = URL_REPOSITORIO.replace(/\/+$/, '');
-  document.getElementById('enlace-descargar').href = `${repositorio}/archive/refs/heads/main.zip`;
-  document.getElementById('enlace-repositorio').href = repositorio;
-  document.querySelectorAll('[data-repositorio]').forEach(opcion => { opcion.hidden = false; });
-}
-
-renderizarSelectorMapeos();
 cargarReporte();

@@ -19,7 +19,8 @@
         </div>
       </div>
 
-      <div class="input-group input-group-sm selector-mapeo">
+      <!-- data-editor: partes del configurador que no van en los reportes exportados (js/exportar.js) -->
+      <div class="input-group input-group-sm selector-mapeo" data-editor>
         <label class="input-group-text" for="selector-mapeo" title="Mapeo en uso"><i class="bi bi-diagram-3"></i></label>
         <select class="form-select" id="selector-mapeo" aria-label="Mapeo en uso"></select>
       </div>
@@ -43,13 +44,15 @@
         <span class="badge text-bg-primary ms-1" id="contador-filtros" hidden>0</span>
       </button>
 
-      <div class="dropdown">
+      <div class="dropdown" data-editor>
         <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
           <i class="bi bi-gear"></i> Configuración
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
           <li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-fuentes"><i class="bi bi-database me-2"></i>Fuentes de datos</button></li>
           <li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-mapeos"><i class="bi bi-diagram-3 me-2"></i>Mapeos</button></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-exportar"><i class="bi bi-box-arrow-up me-2"></i>Exportar reporte…</button></li>
           <li><hr class="dropdown-divider"></li>
           <li><button type="button" class="dropdown-item" id="btn-exportar"><i class="bi bi-download me-2"></i>Exportar configuración</button></li>
           <li><button type="button" class="dropdown-item" id="btn-importar"><i class="bi bi-upload me-2"></i>Importar configuración</button></li>
@@ -66,7 +69,7 @@
     <div id="notificaciones"></div>
     <div id="avisos"></div>
 
-    <!-- Fuentes que usa el mapeo en uso (informativo: se configuran en Configuración → Mapeos) -->
+    <!-- Fuentes que usa el mapeo en uso (informativo) -->
     <div class="d-flex flex-wrap align-items-center gap-2 mb-2" id="fuentes-mapeo"></div>
 
     <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
@@ -145,7 +148,7 @@
   </div>
 
   <!-- Fuentes de datos -->
-  <div class="modal fade" id="modal-fuentes" tabindex="-1" aria-labelledby="modal-fuentes-titulo" aria-hidden="true">
+  <div class="modal fade" id="modal-fuentes" tabindex="-1" aria-labelledby="modal-fuentes-titulo" aria-hidden="true" data-editor>
     <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-lg-down">
       <div class="modal-content">
         <div class="modal-header">
@@ -238,7 +241,7 @@
   </div>
 
   <!-- Mapeos -->
-  <div class="modal fade" id="modal-mapeos" tabindex="-1" aria-labelledby="modal-mapeos-titulo" aria-hidden="true">
+  <div class="modal fade" id="modal-mapeos" tabindex="-1" aria-labelledby="modal-mapeos-titulo" aria-hidden="true" data-editor>
     <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-lg-down">
       <div class="modal-content">
         <div class="modal-header">
@@ -307,13 +310,48 @@
     </div>
   </div>
 
+  <!-- Exportar reporte independiente -->
+  <div class="modal fade" id="modal-exportar" tabindex="-1" aria-labelledby="modal-exportar-titulo" aria-hidden="true" data-editor>
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="modal-exportar-titulo"><i class="bi bi-box-arrow-up me-2"></i>Exportar reporte</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-body-secondary">Descarga una carpeta (.zip) con un proyecto independiente que muestra este reporte tal como está ahora, sin las opciones para editar fuentes ni mapeos.</p>
+
+          <label class="form-label small mb-1" for="exportar-nombre">Nombre del reporte</label>
+          <input class="form-control form-control-sm mb-3" id="exportar-nombre">
+
+          <div class="border rounded p-2 small mb-3" id="exportar-resumen"></div>
+
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="exportar-credenciales" checked>
+            <label class="form-check-label small" for="exportar-credenciales">Incluir los valores de las credenciales en el archivo <code>.env</code></label>
+          </div>
+          <div class="form-text">
+            Las URL y los encabezados de las fuentes API van en el <code>.env</code>, que solo lee el servidor del proyecto exportado: nunca llegan al navegador.
+            Desactívalo si vas a compartir el .zip; el <code>.env</code> irá con los nombres de las variables vacíos para completarlos después.
+          </div>
+          <div class="small mt-3" id="exportar-mensaje" role="status"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-primary" id="btn-descargar-reporte"><i class="bi bi-download"></i> Descargar .zip</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-  <script src="js/datos-ejemplo.js"></script>
+  <script src="js/datos-ejemplo.js" data-editor></script>
   <script src="js/config.js"></script>
   <script src="js/nucleo.js"></script>
-  <script src="js/fuentes.js"></script>
-  <script src="js/mapeos.js"></script>
+  <script src="js/fuentes.js" data-editor></script>
+  <script src="js/mapeos.js" data-editor></script>
   <script src="js/filtros.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/editor.js" data-editor></script>
+  <script src="js/exportar.js" data-editor></script>
 </body>
 </html>

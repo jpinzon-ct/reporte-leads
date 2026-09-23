@@ -1,0 +1,3 @@
+# Las credenciales se configuran en Vercel (Settings → Environment Variables), no se suben
+.env
+.vercel

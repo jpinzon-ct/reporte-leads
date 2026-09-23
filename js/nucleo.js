@@ -47,7 +47,8 @@ function crearId(nombre, existentes) {
 
 // ---------- Configuración guardada en el navegador ----------
 
-const CLAVE_CONFIGURACION = 'reporte-leads:configuracion';
+// Un reporte exportado define su propia clave para no mezclar sus preferencias con las del configurador
+const CLAVE_CONFIGURACION = SOLO_REPORTE ? CLAVE_ALMACENAMIENTO : 'reporte-leads:configuracion';
 
 const configuracion = leerConfiguracion();
 
@@ -57,6 +58,15 @@ function leerConfiguracion() {
     guardada = JSON.parse(localStorage.getItem(CLAVE_CONFIGURACION));
   } catch {
     // Sin almacenamiento o dato corrupto: se parte de la configuración del proyecto.
+  }
+  if (SOLO_REPORTE) {
+    // Fuentes y mapeo fijos (js/config.js); del navegador solo se recuerdan vista, campos y filtros.
+    return {
+      fuentes: FUENTES_PROYECTO,
+      mapeos: [],
+      mapeoActivo: MAPEO_PREDETERMINADO.id,
+      preferencias: guardada?.preferencias ?? { [MAPEO_PREDETERMINADO.id]: structuredClone(PREFERENCIAS_INICIALES) },
+    };
   }
   return {
     fuentes: Array.isArray(guardada?.fuentes) ? guardada.fuentes : structuredClone(FUENTES_PROYECTO),
@@ -85,9 +95,12 @@ function nombreFuente(id) {
   return buscarFuente(id)?.nombre ?? id;
 }
 
-/** El mapeo por defecto no se guarda: se calcula siempre a partir de js/config.js. */
+/**
+ * El mapeo por defecto no se guarda: sale de js/config.js. Si no trae sus campos (configurador),
+ * se calcula automáticamente con EQUIVALENCIAS; un reporte exportado trae sus campos fijos.
+ */
 function todosLosMapeos() {
-  return [{ ...MAPEO_PREDETERMINADO, automatico: true }, ...configuracion.mapeos];
+  return [{ ...MAPEO_PREDETERMINADO, automatico: !MAPEO_PREDETERMINADO.campos }, ...configuracion.mapeos];
 }
 
 function buscarMapeo(id) {
@@ -207,6 +220,8 @@ async function leerFuente(fuente) {
     } catch {
       throw new Error('La respuesta JSON pegada no es válida.');
     }
+  } else if (fuente.tipo === 'servidor') {
+    respuesta = await consultarServidor(fuente);
   } else {
     respuesta = await consultarApi(fuente);
   }
@@ -251,6 +266,30 @@ function leerJsonOpcional(valor, descripcion) {
   } catch {
     throw new Error(`${descripcion} no es un JSON válido.`);
   }
+}
+
+/**
+ * Fuentes de un reporte exportado: el navegador solo pide los datos de la fuente a su propio servidor
+ * (api/fuente.js), que tiene la URL y las credenciales en el archivo .env.
+ */
+async function consultarServidor(fuente) {
+  if (location.protocol === 'file:') {
+    throw new Error('Este reporte obtiene sus datos a través de su propio servidor: ejecútalo con «npm start» (ver README.md).');
+  }
+  let respuesta;
+  try {
+    respuesta = await fetch(`api/fuente?id=${encodeURIComponent(fuente.id)}`, { cache: 'no-store' });
+  } catch {
+    throw new Error('No se pudo conectar con el servidor del reporte.');
+  }
+  let datos;
+  try {
+    datos = await respuesta.json();
+  } catch {
+    throw new Error(respuesta.ok ? 'La respuesta de la fuente no es un JSON válido.' : `El servidor respondió ${respuesta.status}.`);
+  }
+  if (!respuesta.ok) throw new Error(datos?.error || `La fuente respondió ${respuesta.status}.`);
+  return datos;
 }
 
 async function consultarApi(fuente) {

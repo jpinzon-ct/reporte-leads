@@ -8,6 +8,9 @@
  * - MAPEO_PREDETERMINADO: mapeo por defecto; se calcula con EQUIVALENCIAS sobre su fuente principal.
  */
 
+// false = configurador (fuentes y mapeos editables). Los reportes exportados usan true.
+const SOLO_REPORTE = false;
+
 // Repositorio público del proyecto, p. ej. 'https://github.com/usuario/reporte-leads'.
 // Si se indica, el menú Configuración ofrece descargar el proyecto completo (.zip) y ver el código.
 // Vacío = el sitio no muestra esas opciones.

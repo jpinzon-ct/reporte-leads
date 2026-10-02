@@ -3,7 +3,8 @@
  *
  * - FUENTES_PROYECTO:     fuentes de datos iniciales. Desde la página (Configuración → Fuentes de datos)
  *                         se pueden editar y agregar más; los cambios se guardan en el navegador.
- * - CAMPOS_REPORTE:       campos del reporte, en el orden en que se muestran.
+ * - CAMPOS_REPORTE:       campos predeterminados del reporte, en el orden en que se muestran. Cada mapeo
+ *                         guardado puede tener los suyos (Mapeos → Campos base).
  * - EQUIVALENCIAS:        reglas para emparejar automáticamente campos del reporte con claves de las fuentes.
  * - MAPEO_PREDETERMINADO: mapeo por defecto; se calcula con EQUIVALENCIAS sobre su fuente principal.
  */

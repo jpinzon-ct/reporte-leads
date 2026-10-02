@@ -330,7 +330,7 @@ function alternarPanel(pestana) {
 function actualizarResumenes() {
   const texto = estado.error
     ? ''
-    : `${estado.columnas.length} de ${CAMPOS_REPORTE.length} campos del reporte coinciden con las fuentes`;
+    : `${estado.columnas.length} de ${camposDelMapeo(estado.mapeo).length} campos del reporte coinciden con las fuentes`;
   el.resumenCoincidencias.textContent = texto ? `· ${texto}` : '';
   el.panelResumen.textContent = texto;
   el.avisos.innerHTML = estado.avisos

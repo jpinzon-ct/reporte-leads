@@ -218,8 +218,21 @@ body {
   width: 20%;
 }
 
-.tabla-mapeo th:last-child {
+.tabla-mapeo th:nth-child(5) {
   width: 2.5rem;
+}
+
+.tabla-mapeo {
+  min-width: 48rem;
+}
+
+.tabla-mapeo th.col-acciones-mapeo {
+  width: 6.5rem;
+}
+
+.tabla-mapeo .acciones-mapeo .btn {
+  --bs-btn-padding-x: .3rem;
+  --bs-btn-padding-y: .1rem;
 }
 
 .campo-mapeo {

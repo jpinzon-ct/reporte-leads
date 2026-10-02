@@ -21,6 +21,10 @@ usa *Configuración → Exportar configuración* y luego *Importar configuració
   Cada fuente define su *campo Id* (para unirse con las demás) y, opcionalmente, un *campo de orden*.
 - **Mapeos**: cada campo del reporte se asigna a *fuente + clave*. Hay un mapeo por defecto (solo lectura)
   que se calcula con las equivalencias de `js/config.js`; se pueden crear, duplicar y guardar otros.
+- **Campos base configurables**: cada mapeo define sus propios campos del reporte (columnas). En la ventana
+  de mapeos se pueden agregar, renombrar, ordenar y quitar, o con *Campos base* tomarlos directamente de las
+  claves que llegan de la fuente principal o de todas las fuentes (quedan ya mapeados), agregar solo las
+  claves que faltan o volver a los campos predeterminados de `js/config.js`.
 - **Varios registros por Id**:
   - *Resumen*: una fila por Id; cada campo se calcula con su métrica (primer/último registro, conteo,
     valores distintos, suma, promedio, mínimo, máximo o lista de valores).

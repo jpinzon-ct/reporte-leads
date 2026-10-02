@@ -111,6 +111,14 @@ function mapeoActivo() {
   return buscarMapeo(configuracion.mapeoActivo) ?? todosLosMapeos()[0];
 }
 
+/**
+ * Campos del reporte de un mapeo, en el orden en que se muestran. Cada mapeo puede definir los suyos
+ * (`camposReporte`); si no, usa los de js/config.js.
+ */
+function camposDelMapeo(mapeo) {
+  return Array.isArray(mapeo?.camposReporte) ? mapeo.camposReporte : CAMPOS_REPORTE;
+}
+
 /** Ids de las fuentes que usa un mapeo, con la principal primero. */
 function fuentesDelMapeo(mapeo) {
   const ids = new Set([mapeo.fuentePrincipal]);
@@ -362,7 +370,7 @@ function autoemparejar(fuentes, campos = CAMPOS_REPORTE) {
 function paresDelMapeo(mapeo) {
   if (!mapeo.automatico) return mapeo.campos ?? {};
   const principal = resultadosFuentes.get(mapeo.fuentePrincipal);
-  return principal?.cabeceras ? autoemparejar([{ id: mapeo.fuentePrincipal, ...principal }]) : {};
+  return principal?.cabeceras ? autoemparejar([{ id: mapeo.fuentePrincipal, ...principal }], camposDelMapeo(mapeo)) : {};
 }
 
 /** Cuántos Ids de la fuente principal tienen al menos un registro en otra fuente (ambas ya cargadas). */
@@ -390,7 +398,7 @@ function resolverColumnas(mapeo) {
   const pares = paresDelMapeo(mapeo);
   const columnas = [];
   const sinCoincidencia = [];
-  for (const campo of CAMPOS_REPORTE) {
+  for (const campo of camposDelMapeo(mapeo)) {
     const par = pares[campo];
     if (par && resultadosFuentes.get(par.fuente)?.cabeceras?.has(par.clave)) columnas.push({ campo, ...par });
     else sinCoincidencia.push(campo);

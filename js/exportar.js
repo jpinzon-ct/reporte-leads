@@ -39,7 +39,7 @@ function prefijoVariables(idFuente) {
 function reporteAExportar() {
   const mapeo = estado.mapeo;
   const pares = paresDelMapeo(mapeo);
-  const campos = CAMPOS_REPORTE.filter(campo => pares[campo] && buscarFuente(pares[campo].fuente));
+  const campos = camposDelMapeo(mapeo).filter(campo => pares[campo] && buscarFuente(pares[campo].fuente));
   const ids = [...new Set([mapeo.fuentePrincipal, ...campos.map(campo => pares[campo].fuente)])];
   return { mapeo, pares, campos, fuentes: ids.map(buscarFuente).filter(Boolean) };
 }

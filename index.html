@@ -274,6 +274,19 @@
                 <input type="search" class="form-control form-control-sm filtro-mapeo" id="mapeo-filtro" placeholder="Filtrar campos…" aria-label="Filtrar campos">
                 <button type="button" class="btn btn-sm btn-outline-primary" id="btn-autoemparejar" title="Llena los campos sin mapear usando los nombres y las equivalencias de js/config.js"><i class="bi bi-magic"></i> Autoemparejar</button>
                 <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-limpiar-mapeo">Limpiar</button>
+                <div class="dropdown">
+                  <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" id="btn-campos-base" data-bs-toggle="dropdown" aria-expanded="false" title="Define qué campos tiene el reporte de este mapeo"><i class="bi bi-list-columns"></i> Campos base</button>
+                  <ul class="dropdown-menu" id="menu-campos-base">
+                    <li><button type="button" class="dropdown-item" data-accion="agregar"><i class="bi bi-plus-lg me-2"></i>Agregar campo</button></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><h3 class="dropdown-header">Tomar de la fuente de datos</h3></li>
+                    <li><button type="button" class="dropdown-item" data-accion="principal"><i class="bi bi-box-arrow-in-down me-2"></i>Usar las claves de la fuente principal</button></li>
+                    <li><button type="button" class="dropdown-item" data-accion="todas"><i class="bi bi-boxes me-2"></i>Usar las claves de todas las fuentes</button></li>
+                    <li><button type="button" class="dropdown-item" data-accion="faltantes"><i class="bi bi-plus-square me-2"></i>Agregar las claves que aún no son campos</button></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><button type="button" class="dropdown-item" data-accion="predeterminados"><i class="bi bi-arrow-counterclockwise me-2"></i>Restaurar campos predeterminados</button></li>
+                  </ul>
+                </div>
                 <small class="text-body-secondary ms-auto" id="mapeo-contador"></small>
               </div>
 
@@ -286,11 +299,14 @@
                       <th scope="col">Clave en la fuente</th>
                       <th scope="col" title="Cómo combinar los valores cuando la fuente tiene varios registros con el mismo Id (vista Resumen)">Si hay varios registros</th>
                       <th scope="col"><span class="visually-hidden">Estado</span></th>
+                      <th scope="col" class="col-acciones-mapeo"><span class="visually-hidden">Acciones</span></th>
                     </tr>
                   </thead>
                   <tbody id="mapeo-filas"></tbody>
                 </table>
               </div>
+              <button type="button" class="btn btn-sm btn-link px-0 mt-1" id="btn-agregar-campo"><i class="bi bi-plus-lg"></i> Agregar campo</button>
+              <div class="form-text mt-0">Los campos base son las columnas del reporte. Cámbialos con <strong>Campos base</strong>: agrégalos, renómbralos, ordénalos o tómalos directamente de las claves que llegan de la fuente de datos.</div>
               <div id="mapeo-datalists"></div>
             </div>
           </div>
